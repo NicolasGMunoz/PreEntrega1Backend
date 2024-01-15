@@ -40,7 +40,7 @@ router.post('/:cid/product/:pid', async (req, res) => {
     if (updateResault) {
         res.send({ status: 'success', message: 'Producto Agregado' });
     } else {
-        res.status(404).send({ message: 'carrito no encontrado' })
+        res.status(404).send({ message: 'Cart/Product not found' })
     }
 
 });

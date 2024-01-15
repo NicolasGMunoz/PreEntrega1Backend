@@ -1,4 +1,10 @@
 import fs from 'fs';
+import ProductManager from '../managers/productManager.js'
+import { __dirname } from '../util.js'
+import path from 'node:path';
+const productsPath = path.join(__dirname, './files/products.json');
+const productManager = new ProductManager(productsPath);
+
 
 class CartManager {
     constructor(path) {
@@ -61,9 +67,12 @@ class CartManager {
     //method of update carts in JSON
     updateCart = async (idCart, idProduct) => {
         try {
+            const existProduct = await productManager.getProductById(idProduct)
             const carts = await this.getCart();
             const cartIndex = carts.findIndex(cart => cart.id === idCart);
-
+            if (!existProduct){
+                return false
+            }
             if (cartIndex != -1) {
                 const productIndex = carts[cartIndex].products.findIndex(product => product.id === idProduct);
 

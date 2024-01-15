@@ -23,37 +23,24 @@ export default class ProductManager {
     }
 
     //method of create product and push to JSON
-    addProduct = async (title, description, price, thumbnail, code, stock) => {
+    addProduct = async (product) => {
         try {
-            if (!title || !description || !price || !thumbnail || !code || !stock) {
-                console.log("Error to add product, incomplete value");
-                return;
-            }
-
-            const product = {
-                title,
-                description,
-                price,
-                thumbnail,
-                code,
-                stock
-            }
 
             const products = await this.getProducts();
-
-            //existing code condition
-            const indexCode = products.some(product => product.code === code)
-            if (indexCode) {
-                console.log(`The product code ${product.code} alredy exists`);
-            } else {
-                //id generator
-                if (products.length === 0) {
-                    product.id = 1;
-                } else {
-                    product.id = products[products.length - 1].id + 1;
-                }
-                products.push(product);
+            if (products.some(p => p.code === product.code)) {
+                return `The product code ${product.code} alredy exists`;
             }
+            if (!product.title || !product.description || !product.price || !product.thumbnail || !product.code || !product.stock) {
+                return "Error to add product, incomplete value";
+
+            }
+            //id generator
+            if (products.length === 0) {
+                product.id = 1;
+            } else {
+                product.id = products[products.length - 1].id + 1;
+            }
+            products.push(product);
             await fs.promises.writeFile(this.path, JSON.stringify(products, null, '\t'));
 
             return product;
@@ -69,7 +56,7 @@ export default class ProductManager {
             const products = await this.getProducts();
             const indexProduct = products.findIndex(product => product.id === idProduct);
             if (indexProduct === -1) {
-                return `ID ${idProduct} NOT FOUND `;
+                return false;
             } else {
                 return products[indexProduct];
             }
@@ -82,28 +69,29 @@ export default class ProductManager {
     updateProduct = async (idProduct, product) => {
         try {
             const products = await this.getProducts();
-            const indexProduct = products.findIndex(product => product.id === idProduct);
+            const indexProduct = products.findIndex(p => p.id === idProduct);
 
-            if (indexProduct === -1) {
-                return console.log(`ID ${idProduct} NOT FOUND `);
-            } else {
+            if (indexProduct != -1) {
+                if (products.some(p => p.code === product.code)) {
+                    return false
+                }
+                else {
+                    Object.assign(products[indexProduct], { title: product.title })
+                    Object.assign(products[indexProduct], { description: product.description })
+                    Object.assign(products[indexProduct], { code: product.code })
+                    Object.assign(products[indexProduct], { price: product.price })
+                    Object.assign(products[indexProduct], { status: product.status })
+                    Object.assign(products[indexProduct], { category: product.category })
+                    Object.assign(products[indexProduct], { thumbnail: product.thumbnail })
+                    await fs.promises.writeFile(this.path, JSON.stringify(products, null, '\t'));
+                    return true
+                }
+            } 
 
-                Object.assign(products[indexProduct], { title: product.title })
-                Object.assign(products[indexProduct], { description: product.description })
-                Object.assign(products[indexProduct], { code: product.code })
-                Object.assign(products[indexProduct], { price: product.price })
-                Object.assign(products[indexProduct], { stock: product.stock })
-                Object.assign(products[indexProduct], { category: product.category })
-                Object.assign(products[indexProduct], { thumbnail: product.thumbnail })
-                await fs.promises.writeFile(this.path, JSON.stringify(products, null, '\t'));
-                console.log('Update Product successful');
-                await this.getProductById(idProduct)
-                return 
-
-            }
         } catch (error) {
             console.log(error);
         }
+
     }
 
     //method of delete product in array
@@ -113,11 +101,11 @@ export default class ProductManager {
             const indexProduct = products.findIndex(product => product.id === idProduct);
 
             if (indexProduct === -1) {
-                return console.log(`ID ${idProduct} NOT FOUND `);
+                return false;
             } else {
                 products.splice(indexProduct, 1);
                 await fs.promises.writeFile(this.path, JSON.stringify(products, null, '\t'));
-                return console.log(`The product ${idProduct} was deleted successfully`);
+                return true
             }
 
         } catch (error) {

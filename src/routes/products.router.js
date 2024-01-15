@@ -24,7 +24,11 @@ router.get('/', async (req, res) => {
 //Endpoint que muestra el producto segun el id
 router.get('/:pid', async (req, res) => {
     const product = await productManager.getProductById(Number(req.params.pid));
-    res.send(product)
+    if (product) {
+        res.send({payload: product})
+    }else{
+        res.status(404).send({ message: 'Producto no encontrado'})
+    }
 })
 
 //Endpoint que crea un producto 
@@ -52,9 +56,14 @@ router.put('/:pid', async (req, res) => {
 //Endpoint que elimina un producto
 router.delete('/:pid', async (req, res) => {
     const id = Number(req.params.pid);
-    await productManager.deleteProduct(id);
+    const tof = await productManager.deleteProduct(id);
 
-    res.send({ status: 'Success', payload: `Product N° ${id} deleted` });
+    if(tof){
+        res.send({ status: 'Success', payload: `Product N° ${id} deleted` });
+    }else{
+        res.status(404).send({ message: `Product N° ${id} not Found`})
+    }
+    
 });
 
 export default router;
